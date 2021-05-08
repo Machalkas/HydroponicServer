@@ -26,6 +26,7 @@ SECRET_KEY = 'django-insecure-zk=8q(core$5=%#&kyewttp5^sazkfr*upf#%=bcs41xr2#yk@
 DEBUG = True
 
 ALLOWED_HOSTS = []
+CHANNEL_REDIS_HOST=[('127.0.0.1', 6379)]
 
 
 # Application definition
@@ -38,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'Users',
-    'Farms'
+    'Farms',
+    'channels'
 ]
 
 MIDDLEWARE = [
@@ -71,6 +73,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'HydroponicServer.wsgi.application'
 
+# Конфигурация Channels
+ASGI_APPLICATION = "HydroponicServer.asgi.application"
+#Слой каналов
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": CHANNEL_REDIS_HOST,
+            # "symmetric_encryption_keys": [SECRET_KEY],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
