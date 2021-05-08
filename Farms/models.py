@@ -40,6 +40,22 @@ class Timetable(models.Model):
     solution3=models.PositiveIntegerField(blank=True, null=False, default=0, verbose_name="Раствор3")
     co2=models.PositiveIntegerField(blank=True, null=False, default=0, verbose_name="CO2")
     farm=models.ForeignKey(Farm, on_delete=models.CASCADE, verbose_name="Ферма")
+    class Meta:
+        verbose_name='Расписание'
+        verbose_name_plural='Расписание'
+    def __str__(self):
+        return self.date+'|'+self.farm
+
+class Parameters(models.Model):
+    parameters=models.JSONField(blank=False, null=False, verbose_name="Параметры")
+    record_date=models.DateTimeField(blank=False, null=False, verbose_name="Дата записи")
+    farm=models.ForeignKey(Farm, on_delete=models.CASCADE, verbose_name="Ферма")
+    class Meta:
+        verbose_name = 'Параметры'
+        verbose_name_plural = 'Параметры'
+    def __str__(self):
+        return self.record_date+'|'+self.farm
+
 
 
 
