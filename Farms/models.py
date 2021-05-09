@@ -29,7 +29,7 @@ class Statistic(models.Model):
         verbose_name = 'Статистика'
         verbose_name_plural = 'Статистика'
     def __str__(self):
-        return self.record_date+'|'+self.farm
+        return self.farm.name
 
 class Timetable(models.Model):
     date=models.DateField(blank=False, null=False, verbose_name="Дата")
@@ -44,7 +44,7 @@ class Timetable(models.Model):
         verbose_name='Расписание'
         verbose_name_plural='Расписание'
     def __str__(self):
-        return self.date+'|'+self.farm
+        return self.farm.name
 
 class Parameters(models.Model):
     parameters=models.JSONField(blank=False, null=False, verbose_name="Параметры")
@@ -54,7 +54,7 @@ class Parameters(models.Model):
         verbose_name = 'Параметры'
         verbose_name_plural = 'Параметры'
     def __str__(self):
-        return self.record_date+'|'+self.farm
+        return self.farm.name
 
 
 
