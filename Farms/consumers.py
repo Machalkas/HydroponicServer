@@ -1,8 +1,9 @@
 import json
+from datetime import datetime as dt
+
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
-
 from django.core.serializers import serialize
 
 from .models import Farm, Statistic
@@ -27,10 +28,11 @@ class DataConsumer(AsyncWebsocketConsumer):
         action=data["action"]
         print(action)
         if action=='get_statistic':
-            message = await self.get_statistic(self.farm)
+            options=data["options"]
+            message = await self.get_statistic(self.farm, only_last=False, from_date=options.get("from_date",None), to_date=options.get("to_date",None))
             message={'statistic':json.loads(message)}
         elif action=='get_latest_statistic':
-            message = await self.get_statistic(self.farm, True)
+            message = await self.get_statistic(self.farm, only_last=True)
             message={'statistic':json.loads(message)}   
         elif action=='save_statistic':
             options=data["options"]
@@ -63,17 +65,19 @@ class DataConsumer(AsyncWebsocketConsumer):
     def get_statistic(self, farm, only_last=False, from_date=None, to_date=None):
         try:
             if only_last:
-                st=Statistic.objects.latest("record_date")
+                st=Statistic.objects.latest("id")
                 st=(st,)
             else:
                 st=Statistic.objects.filter(farm=farm.pk)
                 if from_date!=None:
-                    st=st.filter(record_date>=from_date)
+                    from_date=dt.strptime(from_date, "%Y-%m-%dT%H:%M:%S")
+                    st=st.filter(record_date__gte=from_date)#меньше или равно
                 if to_date!=None:
-                    st=st.filter(record_date<=to_date)
+                    to_date=dt.strptime(to_date, "%Y-%m-%dT%H:%M:%S")
+                    st=st.filter(record_date__lte=to_date)#больше или равно
             st=serialize('json', st)
             return st
-        except:
+        except ZeroDivisionError:
             return None
 
     @database_sync_to_async
