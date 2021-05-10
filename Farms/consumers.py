@@ -27,7 +27,8 @@ class DataConsumer(AsyncWebsocketConsumer):
         print(action)
         if action=='get_statistic':
             message = await self.get_statistic(self.farm)
-        await self.send(text_data=json.dumps({'message':message}))
+            message={'statistic':json.loads(message)}
+        await self.send(text_data=json.dumps(message))
         # await self.channel_layer.group_send(self.farm_token, {'type':'broadcast','message':message})
 
 
