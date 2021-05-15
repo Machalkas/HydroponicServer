@@ -22,7 +22,7 @@ urlpatterns = [
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.authtoken')),
     path('auth/', include('djoser.urls.jwt')),
-    path('farms-api/', include('Farms.urls')),
+    path('api/', include('Farms.urls')),
     # path('api-auth/', include('rest_framework.urls')),
     # path('api-token-auth/', views.obtain_auth_token)
 ]

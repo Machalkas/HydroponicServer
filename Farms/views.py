@@ -1,12 +1,15 @@
 from django.shortcuts import render
 from django.contrib.auth import authenticate
+from rest_framework import serializers
+from rest_framework.serializers import Serializer
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 from .models import Farm
-from Users.models import User
 from stringGenerator import generateUnicque
+from .serializers import FarmsSerializer
 
 class farmRegistration(APIView):
     def post(self, request):
@@ -23,4 +26,10 @@ class farmRegistration(APIView):
         f=Farm.objects.create(**params)
         f.save()
         return Response(data={"token":f.token}, status=201)
-        
+
+class getFarms(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        f=Farm.objects.filter(user=request.user)
+        serializer=FarmsSerializer(f, many=True)
+        return Response({'farms':serializer.data})
