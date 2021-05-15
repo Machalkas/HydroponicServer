@@ -49,7 +49,7 @@ class Timetable(models.Model):
 class Parameters(models.Model):
     parameters=models.JSONField(blank=False, null=False, verbose_name="Параметры")
     record_date=models.DateTimeField(blank=False, null=False, verbose_name="Дата записи")
-    farm=models.ForeignKey(Farm, on_delete=models.CASCADE, verbose_name="Ферма")
+    farm=models.OneToOneField(Farm, on_delete=models.CASCADE, verbose_name="Ферма")
     class Meta:
         verbose_name = 'Параметры'
         verbose_name_plural = 'Параметры'
