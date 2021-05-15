@@ -7,6 +7,7 @@ class Manager(UserManager):
         if not email:
             raise ValueError('Пользователь должен иметь email')
         user=self.model(email=email,)
+        user.set_password(password)
         user.save(using=self._db)
         return user
     def create_superuser(self, email, password=None):

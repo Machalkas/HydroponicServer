@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+from stringGenerator import generate
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,6 +28,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 CHANNEL_REDIS_HOST=[('127.0.0.1', 6379)]
+REDIS_SECRET_KEY=[generate(size=100)]
 
 
 # Application definition
@@ -76,11 +78,13 @@ TEMPLATES = [
 
 #Конфигурация REST
 REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
+
 
 SIMPLE_JWT = {
    'AUTH_HEADER_TYPES': ('JWT',),
@@ -97,7 +101,7 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
             "hosts": CHANNEL_REDIS_HOST,
-            # "symmetric_encryption_keys": [SECRET_KEY],
+            "symmetric_encryption_keys": REDIS_SECRET_KEY,
         },
     },
 }
