@@ -5,4 +5,4 @@ from .models import Farm
 class FarmsSerializer(serializers.ModelSerializer):
     class Meta:
         model=Farm
-        exclude=['user',]
+        exclude=['user','token']
