@@ -1,4 +1,5 @@
 import json
+import redis
 from datetime import datetime as dt
 
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -7,6 +8,8 @@ from asgiref.sync import sync_to_async
 from django.core.serializers import serialize
 
 from .models import Farm, Statistic
+
+r = redis.Redis(host='localhost', port=6379, db=1)
 
 class DataConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -22,6 +25,7 @@ class DataConsumer(AsyncWebsocketConsumer):
             if self.farm_client==self.farm:
                 await self.channel_layer.group_add(self.farm_id, self.channel_name)
                 await self.accept()
+                r.hset('farms', self.farm_id, 'true')
             else:
                 await self.close()
         else:
@@ -35,6 +39,8 @@ class DataConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.farm_id, self.channel_name)
+        if self.is_farm:
+            r.hset('farms', self.farm_id, 'false')
     
     async def receive(self, text_data):
         is_broadcast=False
@@ -65,6 +71,7 @@ class DataConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_send(self.farm_id, {'type':'broadcast','message':message})
         else:
             await self.send(text_data=json.dumps(message))
+
 
 
     async def broadcast(self, data):
