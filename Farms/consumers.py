@@ -49,13 +49,16 @@ class DataConsumer(AsyncWebsocketConsumer):
             message = await self.get_statistic(self.farm, only_last=True)
             message={'statistic':json.loads(message)}   
         elif action=='save_statistic':
-            options=data["options"]
-            message = await self.save_statistic(self.farm, options)
-            if not message:
-                message={'error':'fail to save statistic'}
+            if not self.is_farm:
+                message={'error':'you don`t have rights to run this action'}
             else:
-                message={'sensors':options}
-            is_broadcast=True
+                options=data["options"]
+                message = await self.save_statistic(self.farm, options)
+                if not message:
+                    message={'error':'fail to save statistic'}
+                else:
+                    message={'sensors':options}
+                is_broadcast=True
         else:
             message={'error':'fail to process request'}
         if is_broadcast:
