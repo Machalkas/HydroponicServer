@@ -10,6 +10,7 @@ from django.core.serializers import serialize
 from .models import Farm, Statistic
 
 r = redis.Redis(host='localhost', port=6379, db=1)
+r.flushdb()
 
 class DataConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -23,6 +24,7 @@ class DataConsumer(AsyncWebsocketConsumer):
             self.user=self.scope["user"]
         if self.is_farm :
             if self.farm_client==self.farm:
+                await self.channel_layer.group_send(self.farm_id, {'type':'broadcast','message':{'farm_online':True}})
                 await self.channel_layer.group_add(self.farm_id, self.channel_name)
                 await self.accept()
                 r.hset('farms', self.farm_id, 'true')
@@ -32,6 +34,7 @@ class DataConsumer(AsyncWebsocketConsumer):
             if self.user==self.farm_user:
                 await self.channel_layer.group_add(self.farm_id, self.channel_name)
                 await self.accept()
+                await self.send(text_data=json.dumps({'farm_online':isOnline(self.farm_id)}))
             else:
                 await self.close()
 
@@ -41,6 +44,7 @@ class DataConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_discard(self.farm_id, self.channel_name)
         if self.is_farm:
             r.hset('farms', self.farm_id, 'false')
+            await self.channel_layer.group_send(self.farm_id, {'type':'broadcast','message':{'farm_online':False}})
     
     async def receive(self, text_data):
         is_broadcast=False
@@ -65,6 +69,8 @@ class DataConsumer(AsyncWebsocketConsumer):
                 else:
                     message={'sensors':options}
                 is_broadcast=True
+        elif action=='is_online':
+            message={'farm_online':isOnline(self.farm_id)}
         else:
             message={'error':'fail to process request'}
         if is_broadcast:
@@ -114,3 +120,11 @@ class DataConsumer(AsyncWebsocketConsumer):
             return True
         except:
             return False
+
+
+
+def isOnline(fid:str):
+    status=r.hget('farms',fid)
+    if status!=None and status.decode()=='true':
+        return True
+    return False
