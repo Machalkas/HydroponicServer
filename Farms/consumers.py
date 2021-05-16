@@ -10,17 +10,31 @@ from .models import Farm, Statistic
 
 class DataConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        t=self.scope['url_route']['kwargs']['farm_token']
-        self.farm = await self.get_farm(t)
-        if self.farm:
-            self.farm_token=self.farm.token
-            await self.channel_layer.group_add(self.farm_token, self.channel_name)
-            await self.accept()
+        fid=self.scope['url_route']['kwargs']['farm_id']
+        self.farm, self.farm_user = await self.get_farm(fid)
+        self.farm_id=str(self.farm.id)
+        self.is_farm=self.scope['is_farm']
+        if self.is_farm:
+            self.farm_client=self.scope["farm"]
         else:
-            await self.close()
+            self.user=self.scope["user"]
+        if self.is_farm :
+            if self.farm_client==self.farm:
+                await self.channel_layer.group_add(self.farm_id, self.channel_name)
+                await self.accept()
+            else:
+                await self.close()
+        else:
+            if self.user==self.farm_user:
+                await self.channel_layer.group_add(self.farm_id, self.channel_name)
+                await self.accept()
+            else:
+                await self.close()
+
+
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.farm_token, self.channel_name)
+        await self.channel_layer.group_discard(self.farm_id, self.channel_name)
     
     async def receive(self, text_data):
         is_broadcast=False
@@ -45,7 +59,7 @@ class DataConsumer(AsyncWebsocketConsumer):
         else:
             message={'error':'fail to process request'}
         if is_broadcast:
-            await self.channel_layer.group_send(self.farm_token, {'type':'broadcast','message':message})
+            await self.channel_layer.group_send(self.farm_id, {'type':'broadcast','message':message})
         else:
             await self.send(text_data=json.dumps(message))
 
@@ -55,9 +69,10 @@ class DataConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps(message))
 
     @database_sync_to_async
-    def get_farm(self, k):
+    def get_farm(self, id):
         try:
-            return Farm.objects.get(token=k)
+            f=Farm.objects.get(pk=id)
+            return f, f.user
         except:
             return None
 

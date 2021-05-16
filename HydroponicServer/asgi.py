@@ -6,11 +6,13 @@ from django.core.asgi import get_asgi_application
 
 import Farms.routing
 
+from Farms.channel_token_auth import TokenAuthMiddlewareStack
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'HydroponicServer.settings')
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
-    "websocket": AuthMiddlewareStack(
+    "websocket": TokenAuthMiddlewareStack(
         URLRouter(
             Farms.routing.websocket_urlpatterns
         )
