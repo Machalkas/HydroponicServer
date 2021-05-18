@@ -50,6 +50,7 @@
 
 <script>
   let socket;
+  var div = $("#log");
   $("#host").val("ws://"+$(location).attr('host'));
 function Connect(){
   socket = new WebSocket($("#host").val()+"/ws/farm/"+$("#farm_id").val()+"/?Authorization="+$('input[name="farm"]:checked').val()+" "+$("#token").val());
@@ -78,8 +79,12 @@ function writeLog(mess, color='black', style=""){
   data=mess;
   log=document.getElementById("log");
   log.innerHTML+='<p style="color:'+color+'; '+style+'">'+mess+'</p>';
+  autoScroll();
 };
 
+function autoScroll(){
+  div.scrollTop(div.prop('scrollHeight'));
+}
 </script>
 </body>
 </html>
