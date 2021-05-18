@@ -108,8 +108,8 @@ class DataConsumer(AsyncWebsocketConsumer):
                     st=st.filter(record_date__lte=to_date)#больше или равно
             st=serialize('json', st)
             return st
-        except ZeroDivisionError:
-            return None
+        except:
+            return json.dumps([])
 
     @database_sync_to_async
     def save_statistic(self, farm, sensors):

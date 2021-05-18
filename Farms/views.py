@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 from rest_framework import response
@@ -11,6 +12,10 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Farm
 from stringGenerator import generateUnicque
 from .serializers import FarmsSerializer
+
+@login_required
+def websocketDebug(self):
+    return render(self, 'Farms/websocket_debug.html')
 
 class farmRegistration(APIView):
     def post(self, request):
