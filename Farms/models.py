@@ -10,6 +10,7 @@ class Farm(models.Model):
     class Meta:
         verbose_name = 'Ферма'
         verbose_name_plural = 'Фермы'
+        unique_together = (('name', 'user'),)
     def __str__(self):
         return self.name
     
@@ -28,6 +29,7 @@ class Statistic(models.Model):
     class Meta:
         verbose_name = 'Статистика'
         verbose_name_plural = 'Статистика'
+        unique_together = (('record_date', 'farm'),)
     def __str__(self):
         return self.farm.name
 
@@ -43,6 +45,7 @@ class Timetable(models.Model):
     class Meta:
         verbose_name='Расписание'
         verbose_name_plural='Расписание'
+        unique_together = (('date', 'farm'),)
     def __str__(self):
         return self.farm.name
 

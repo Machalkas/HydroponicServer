@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth import authenticate
 from rest_framework import serializers
+from rest_framework import response
 from rest_framework.serializers import Serializer
 
 from rest_framework.views import APIView
@@ -26,6 +27,22 @@ class farmRegistration(APIView):
         f=Farm.objects.create(**params)
         f.save()
         return Response(data={"token":f.token}, status=201)
+
+class farmAuthorization(APIView):
+    def post(self, request):
+        u=authenticate(email=request.POST.get("email"), password=request.POST.get("password"))  
+        if u is None:
+            return Response(data={"error":"Пользователь не найден"}, status=400)
+        n=request.POST.get("name")
+        if n is None:
+            return Response({'error':'Название фермы обязательноеполе'},status=400)
+        try:
+            f=Farm.objects.get(user=u, name=n)
+        except:
+            return Response({'error':'Ферма с именем '+n+' не найдена'})
+        f.token=generateUnicque(Farm, "token",size=100)
+        f.save()
+        return Response(data={"token":f.token}, status=200)
 
 class getFarms(APIView):
     permission_classes = [IsAuthenticated]
