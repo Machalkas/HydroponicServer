@@ -31,7 +31,7 @@ class farmRegistration(APIView):
             params['name']=n
         f=Farm.objects.create(**params)
         f.save()
-        return Response(data={"token":f.token}, status=201)
+        return Response(data={"token":f.token, "id":str(f.id)}, status=201)
 
 class farmAuthorization(APIView):
     def post(self, request):
@@ -47,7 +47,7 @@ class farmAuthorization(APIView):
             return Response({'error':'Ферма с именем '+n+' не найдена'})
         f.token=generateUnicque(Farm, "token",size=100)
         f.save()
-        return Response(data={"token":f.token}, status=200)
+        return Response(data={"token":f.token, "id":str(f.id)}, status=200)
 
 class getFarms(APIView):
     permission_classes = [IsAuthenticated]
