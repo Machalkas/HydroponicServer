@@ -29,8 +29,10 @@
   <input type="text" id="token">
   <label for="farm_id">ID фермы</label>
   <input type="number" id="farm_id">
-  <p><input name="farm" type="radio" value="FarmToken">Ферма</p>
-  <p><input name="farm" type="radio" value="Token" checked>Клиент</p>
+  <div style="display: inline-flex;">
+    <p><input name="farm" type="radio" value="FarmToken">Ферма</p>
+    <p><input name="farm" type="radio" value="Token" checked>Клиент</p>
+  </div>
   <div style="display: inline-flex;">
   <div class="btn" style="border-color: green;"><a  id="connect_btn" onclick="Connect()">Подключиться</a></div>
   <div class="btn" style="border-color: red;"><a  id="close" onclick="socket.close(1000, 'работа закончена');">Отключиться</a></div>
@@ -44,7 +46,7 @@
   <div class="btn"><a  id="is_online" onclick="send('is_online')">Ферма онлайн?</a></div>
   <p>Запрос</p>
   <textarea type="text" id="req" style="width:300px; height: 200px;">{"action": "get_statistic","options":{"from_date":"2021-05-05T23:00:00","to_date":"2021-05-10T23:00:00"}}</textarea>
-  <div class="btn"><a  id="send" onclick="send($('#req').text())">Отправить</a></div>
+  <div class="btn"><a  id="send" onclick="send($('#req').val())">Отправить</a></div>
 </div>
 
 
@@ -54,7 +56,7 @@
   $("#host").val("ws://"+$(location).attr('host'));
 function Connect(){
   socket = new WebSocket($("#host").val()+"/ws/farm/"+$("#farm_id").val()+"/?Authorization="+$('input[name="farm"]:checked').val()+" "+$("#token").val());
-  socket.onopen = function(e) {writeLog("Сокет подключен "+$("#host").val()+"/ws/farm/"+$("#farm_id").val()+"/?Authorization=Token "+$("#token").val(),'green','text-align: center');};
+  socket.onopen = function(e) {writeLog("Сокет подключен "+$("#host").val()+"/ws/farm/"+$("#farm_id").val()+"/?Authorization="+$('input[name="farm"]:checked').val()+" "+$("#token").val(),'green','text-align: center');};
   socket.onmessage = function(event) {console.log(JSON.parse(event.data));writeLog(event.data,'blue');};
   socket.onclose = function(event) {if (event.wasClean) {writeLog('Соединение закрыто','red','text-align: center');console.log(`[close] Соединение закрыто чисто, код=${event.code} причина=${event.reason}`);} else {writeLog('Соединение прервано','red','text-align: center');console.log('[close] Соединение прервано');}};
   socket.onerror = function(error) {log.write(`${error.message}`,'red');console.log(`[error] ${error.message}`);};

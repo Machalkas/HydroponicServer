@@ -12,7 +12,10 @@ def getUserFromToken(key):
     return User.objects.get(pk=t.user.pk)
 @database_sync_to_async
 def getFarmToken(key):
-    return Farm.objects.get(token=key)
+    try:
+        return Farm.objects.get(token=key)
+    except:
+        return None
 
 class TokenAuthMiddleware:
 

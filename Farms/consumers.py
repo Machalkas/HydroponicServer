@@ -23,12 +23,15 @@ class DataConsumer(AsyncWebsocketConsumer):
         else:
             self.user=self.scope["user"]
         if self.is_farm :
-            if self.farm_client==self.farm:
+            status=r.hget('farms', self.farm_id)
+            if self.farm_client==self.farm and (status==None or status.decode()=='false'):
                 await self.channel_layer.group_send(self.farm_id, {'type':'broadcast','message':{'farm_online':True}})
                 await self.channel_layer.group_add(self.farm_id, self.channel_name)
                 await self.accept()
                 r.hset('farms', self.farm_id, 'true')
+                self.del_from_reddis=True
             else:
+                self.del_from_reddis=False
                 await self.close()
         else:
             if self.user==self.farm_user:
@@ -43,16 +46,24 @@ class DataConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.farm_id, self.channel_name)
         if self.is_farm:
-            r.hset('farms', self.farm_id, 'false')
+            if self.del_from_reddis:
+                r.hset('farms', self.farm_id, 'false')
             await self.channel_layer.group_send(self.farm_id, {'type':'broadcast','message':{'farm_online':False}})
     
     async def receive(self, text_data):
         is_broadcast=False
-        data=json.loads(text_data)
-        action=data["action"]
+        try:
+            data=json.loads(text_data)
+            action=data["action"]
+        except:
+            await self.send(text_data=json.dumps({"error":"не правильный формат сообщения"}))
+            return
         print(action)
         if action=='get_statistic':
-            options=data["options"]
+            try:
+                options=data["options"]
+            except:
+                options={}
             message = await self.get_statistic(self.farm, only_last=False, from_date=options.get("from_date",None), to_date=options.get("to_date",None))
             message={'statistic':json.loads(message)}
         elif action=='get_latest_statistic':
@@ -60,22 +71,23 @@ class DataConsumer(AsyncWebsocketConsumer):
             message={'statistic':json.loads(message)}   
         elif action=='save_statistic':
             if not self.is_farm:
-                message={'error':'you don`t have rights to run this action'}
+                message={'error':'не достаточно прав для выполнения этого action'}
             else:
                 options=data["options"]
                 message = await self.save_statistic(self.farm, options)
                 if not message:
-                    message={'error':'fail to save statistic'}
+                    message={'error':'не удалось загрузить статистику'}
                 else:
                     message={'sensors':options}
                 is_broadcast=True
         elif action=='is_online':
             message={'farm_online':isOnline(self.farm_id)}
         else:
-            message={'error':'fail to process request'}
+            message={'error':'не удалось выполнить запрос'}
         if is_broadcast:
             await self.channel_layer.group_send(self.farm_id, {'type':'broadcast','message':message})
         else:
+            print(message)
             await self.send(text_data=json.dumps(message))
 
 
