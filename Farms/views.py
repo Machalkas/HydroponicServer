@@ -17,6 +17,11 @@ from .serializers import FarmsSerializer
 def websocketDebug(self):
     return render(self, 'Farms/websocket_debug.html')
 
+
+def index(request):
+    return render(request, 'Farms/index.html')
+
+
 class farmRegistration(APIView):
     def post(self, request):
         u=authenticate(email=request.POST.get("email"), password=request.POST.get("password"))

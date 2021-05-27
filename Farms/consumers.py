@@ -82,6 +82,7 @@ class DataConsumer(AsyncWebsocketConsumer):
                 is_broadcast=True
         elif action=='is_online':
             message={'farm_online':isOnline(self.farm_id)}
+            is_broadcast=True
         else:
             message={'error':'не удалось выполнить запрос'}
         if is_broadcast:

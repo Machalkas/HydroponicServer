@@ -20,11 +20,12 @@ from rest_framework.authtoken import views
 from django.views.generic import RedirectView
 
 urlpatterns = [
+    path('', include('Farms.urls')),
     path('admin/', admin.site.urls),
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.authtoken')),
     path('auth/', include('djoser.urls.jwt')),
-    path('', include('Farms.urls')),
+    path('user/',include('Users.urls')),
     re_path(r'^favicon\.ico$', RedirectView.as_view(url='/static/favicon.ico'), name='favicon'),
     # path('api-auth/', include('rest_framework.urls')),
     # path('api-token-auth/', views.obtain_auth_token)
