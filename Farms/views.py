@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Farm
 from stringGenerator import generateUnicque
 from .serializers import FarmsSerializer
+from time import sleep
 
 @login_required
 def websocketDebug(self):
@@ -57,6 +58,7 @@ class farmAuthorization(APIView):
 class getFarms(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
+        # sleep(2.9)
         f=Farm.objects.filter(user=request.user)
         serializer=FarmsSerializer(f, many=True)
         return Response({'farms':serializer.data})

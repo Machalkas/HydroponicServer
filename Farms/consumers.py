@@ -82,7 +82,6 @@ class DataConsumer(AsyncWebsocketConsumer):
                 is_broadcast=True
         elif action=='is_online':
             message={'farm_online':isOnline(self.farm_id)}
-            is_broadcast=True
         else:
             message={'error':'не удалось выполнить запрос'}
         if is_broadcast:
@@ -131,7 +130,7 @@ class DataConsumer(AsyncWebsocketConsumer):
             st=Statistic.objects.create(**sensors)
             st.save()
             return True
-        except:
+        except ZeroDivisionError:
             return False
 
 
