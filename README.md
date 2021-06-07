@@ -14,6 +14,10 @@ HydroponicServer
 
 ```C:\dir>env\Scripts\activate.bat```
 
+Установите библиотеки
+
+```(env) C:\dir>pip install -r req.txt```
+
 **Перед первым запуском**
 
 Выполни миграции
