@@ -18,6 +18,8 @@ HydroponicServer
 
 ```(env) C:\dir>pip install -r req.txt```
 
+Установите Redis (аналог для Windows https://www.memurai.com/)
+
 **Перед первым запуском**
 
 Выполни миграции
