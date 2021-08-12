@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ["192.168.1.254","192.168.119.174","127.0.0.1", "192.168.56.1", 
 CHANNEL_REDIS_HOST=[('127.0.0.1', 6379)]
 REDIS_SECRET_KEY=[generate(size=100)]
 
+CORS_ALLOWED_ORIGINS = ["http://localhost:8080",]#удолить
 
 # Application definition
 
