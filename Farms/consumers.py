@@ -25,7 +25,7 @@ class DataConsumer(AsyncWebsocketConsumer):
         if self.is_farm :
             status=r.hget('farms', self.farm_id)
             if self.farm_client==self.farm and (status==None or status.decode()=='false'):
-                await self.channel_layer.group_send(self.farm_id, {'type':'broadcast','message':{'farm_online':True}})
+                await self.channel_layer.group_send(self.farm_id, {'type':'broadcast','message':{'is_online':True}})
                 await self.channel_layer.group_add(self.farm_id, self.channel_name)
                 await self.accept()
                 r.hset('farms', self.farm_id, 'true')
@@ -37,7 +37,7 @@ class DataConsumer(AsyncWebsocketConsumer):
             if self.user==self.farm_user:
                 await self.channel_layer.group_add(self.farm_id, self.channel_name)
                 await self.accept()
-                await self.send(text_data=json.dumps({'farm_online':isOnline(self.farm_id)}))
+                await self.send(text_data=json.dumps({'is_online':isOnline(self.farm_id)}))
             else:
                 await self.close()
 
@@ -48,7 +48,7 @@ class DataConsumer(AsyncWebsocketConsumer):
         if self.is_farm:
             if self.del_from_reddis:
                 r.hset('farms', self.farm_id, 'false')
-            await self.channel_layer.group_send(self.farm_id, {'type':'broadcast','message':{'farm_online':False}})
+            await self.channel_layer.group_send(self.farm_id, {'type':'broadcast','message':{'is_online':False}})
     
     async def receive(self, text_data):
         is_broadcast=False
@@ -78,10 +78,15 @@ class DataConsumer(AsyncWebsocketConsumer):
                 if not message:
                     message={'error':'не удалось загрузить статистику'}
                 else:
-                    message={'sensors':options}
-                is_broadcast=True
+                    message={'statistic':options}
+                    is_broadcast=True
+        elif action=='sensors_data':
+            message={'sensors_data':data["options"]}
+            is_broadcast=True
         elif action=='is_online':
-            message={'farm_online':isOnline(self.farm_id)}
+            message={'is_online':isOnline(self.farm_id)}
+        elif action=='farm_name':
+            message={'farm_name':self.farm.name}
         else:
             message={'error':'не удалось выполнить запрос'}
         if is_broadcast:
