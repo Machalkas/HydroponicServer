@@ -23,8 +23,9 @@ class TokenAuthMiddleware:
         self.app=app
 
     async def __call__(self, scope, receive, send):
-        query=dict(x.split("=") for x  in scope["query_string"].decode().split("&"))
+        print(scope["query_string"])
         try:
+            query=dict(x.split("=") for x  in scope["query_string"].decode().split("&"))
             token_name, token_key=query['Authorization'].split("%20")
             if token_name=="Token":
                 scope['is_farm']=False
@@ -35,6 +36,8 @@ class TokenAuthMiddleware:
                 farm=await getFarmToken(token_key)
                 scope['farm']=farm
         except Token.DoesNotExist:
+            scope['user']=AnonymousUser()
+        except ValueError:
             scope['user']=AnonymousUser()
         return await self.app(scope, receive, send)
 
