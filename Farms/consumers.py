@@ -56,7 +56,7 @@ class DataConsumer(AsyncWebsocketConsumer):
             data=json.loads(text_data)
             action=data["action"]
         except:
-            await self.send(text_data=json.dumps({"error":"не правильный формат сообщения"}))
+            await self.send(text_data=json.dumps({"error":"data format is not correct"}))
             return
         print(action)
         if action=='get_statistic':
@@ -71,12 +71,12 @@ class DataConsumer(AsyncWebsocketConsumer):
             message={'statistic':json.loads(message)}   
         elif action=='save_statistic':
             if not self.is_farm:
-                message={'error':'не достаточно прав для выполнения этого action'}
+                message={'error':'not enough rights to perform this action'}
             else:
                 options=data["options"]
                 message = await self.save_statistic(self.farm, options)
                 if not message:
-                    message={'error':'не удалось загрузить статистику'}
+                    message={'error':'failed to load statistics'}
                 else:
                     message={'statistic':options}
                     is_broadcast=True
@@ -88,7 +88,7 @@ class DataConsumer(AsyncWebsocketConsumer):
         elif action=='farm_name':
             message={'farm_name':self.farm.name}
         else:
-            message={'error':'не удалось выполнить запрос'}
+            message={'error':'failed request'}
         if is_broadcast:
             await self.channel_layer.group_send(self.farm_id, {'type':'broadcast','message':message})
         else:
