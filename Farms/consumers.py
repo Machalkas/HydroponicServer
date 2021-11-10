@@ -7,7 +7,7 @@ from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
 from django.core.serializers import serialize
 
-from .models import Farm, Statistic
+from .models import Farm, Statistic, Timetable
 
 r = redis.Redis(host='localhost', port=6379, db=1)
 r.flushdb()
@@ -81,18 +81,24 @@ class DataConsumer(AsyncWebsocketConsumer):
                     message={'statistic':options}
                     is_broadcast=True
         elif action=='sensors_data':
-            message={'sensors_data':data["options"]}
-            is_broadcast=True
+            if not self.is_farm:
+                message={'error':'not enough rights to perform this action'}
+            else:
+                message={'sensors_data':data["options"]}
+                is_broadcast=True
         elif action=='is_online':
             message={'is_online':isOnline(self.farm_id)}
         elif action=='farm_name':
             message={'farm_name':self.farm.name}
+        elif action=='get_timetable':
+            message=await self.get_timetable(self.farm)
+            message={'timetable':json.loads(message)}
         else:
             message={'error':'failed request'}
         if is_broadcast:
             await self.channel_layer.group_send(self.farm_id, {'type':'broadcast','message':message})
         else:
-            print(message)
+            # print(message)
             await self.send(text_data=json.dumps(message))
 
 
@@ -125,6 +131,15 @@ class DataConsumer(AsyncWebsocketConsumer):
                     st=st.filter(record_date__lte=to_date)#больше или равно
             st=serialize('json', st)
             return st
+        except:
+            return json.dumps([])
+    
+    @database_sync_to_async
+    def get_timetable(self, farm):
+        try:
+            tm=Timetable.objects.filter(farm=farm.pk)
+            tm=serialize('json',tm)
+            return tm
         except:
             return json.dumps([])
 
