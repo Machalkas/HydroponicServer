@@ -166,7 +166,7 @@ class DataConsumer(AsyncWebsocketConsumer):
         for i in timetable:
             if timetable[i]["action"]=="delete":
                 delete.get(date=dt.strptime(i,"%d.%m.%Y")).delete()
-            elif timetable[i]["action"]=="change":
+            elif timetable[i]["action"]=="change" and timetable[i]["data"]:
                 timetable[i]["data"]['farm_id']=self.farm.pk
                 timetable[i]["data"]['date']=dt.strptime(timetable[i]["data"]['date'],"%d.%m.%Y")
                 try:
