@@ -1,6 +1,6 @@
 import json
 import redis
-from datetime import datetime as dt
+from datetime import date, datetime as dt
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
@@ -52,6 +52,7 @@ class DataConsumer(AsyncWebsocketConsumer):
     
     async def receive(self, text_data):
         is_broadcast=False
+        # print(text_data)
         try:
             data=json.loads(text_data)
             action=data["action"]
@@ -93,6 +94,12 @@ class DataConsumer(AsyncWebsocketConsumer):
         elif action=='get_timetable':
             message=await self.get_timetable(self.farm)
             message={'timetable':json.loads(message)}
+        elif action=='save_timetable':
+            options=data["options"]
+            await self.save_timetable(options)
+            message=await self.get_timetable(self.farm)
+            message={'timetable':json.loads(message)}
+            is_broadcast=True
         else:
             message={'error':'failed request'}
         if is_broadcast:
@@ -152,6 +159,24 @@ class DataConsumer(AsyncWebsocketConsumer):
             return True
         except ZeroDivisionError:
             return False
+    
+    @database_sync_to_async
+    def save_timetable(self, timetable):
+        delete=Timetable.objects.filter(farm=self.farm.pk)
+        for i in timetable:
+            if timetable[i]["action"]=="delete":
+                delete.get(date=dt.strptime(i,"%d.%m.%Y")).delete()
+            elif timetable[i]["action"]=="change":
+                timetable[i]["data"]['farm_id']=self.farm.pk
+                timetable[i]["data"]['date']=dt.strptime(timetable[i]["data"]['date'],"%d.%m.%Y")
+                try:
+                    change=Timetable.objects.create(**timetable[i]["data"])
+                    change.save()
+                except:
+                    Timetable.objects.filter(farm=self.farm.pk).filter(date=timetable[i]["data"]['date']).update(**timetable[i]["data"])
+
+            
+
 
 
 
