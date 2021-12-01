@@ -37,10 +37,10 @@ class Timetable(models.Model):
     date=models.DateField(blank=False, null=False, verbose_name="Дата")
     light_on_time=models.TimeField(blank=True, null=True, verbose_name="Включение света")
     light_off_time=models.TimeField(blank=True, null=True, verbose_name="Выключение света")
-    solution1=models.PositiveIntegerField(blank=True, null=False, default=0, verbose_name="Раствор1")
-    solution2=models.PositiveIntegerField(blank=True, null=False, default=0, verbose_name="Раствор2")
-    solution3=models.PositiveIntegerField(blank=True, null=False, default=0, verbose_name="Раствор3")
-    co2=models.PositiveIntegerField(blank=True, null=False, default=0, verbose_name="CO2")
+    solution1=models.PositiveIntegerField(blank=True, null=True, default=0, verbose_name="Раствор1")
+    solution2=models.PositiveIntegerField(blank=True, null=True, default=0, verbose_name="Раствор2")
+    solution3=models.PositiveIntegerField(blank=True, null=True, default=0, verbose_name="Раствор3")
+    co2=models.PositiveIntegerField(blank=True, null=True, default=0, verbose_name="CO2")
     farm=models.ForeignKey(Farm, on_delete=models.CASCADE, verbose_name="Ферма")
     class Meta:
         verbose_name='Расписание'
