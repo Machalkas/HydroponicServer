@@ -100,6 +100,9 @@ class DataConsumer(AsyncWebsocketConsumer):
             message=await self.get_timetable(self.farm)
             message={'timetable':json.loads(message)}
             is_broadcast=True
+        elif action=="executors":
+            message={"executors":data["options"]}
+            is_broadcast=True
         else:
             message={'error':'failed request'}
         if is_broadcast:
