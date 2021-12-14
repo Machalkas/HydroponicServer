@@ -77,7 +77,7 @@ class DataConsumer(AsyncWebsocketConsumer):
                 options=data["options"]
                 message = await self.save_statistic(self.farm, options)
                 if not message:
-                    message={'error':'failed to load statistics'}
+                    message={'error':'failed to save statistics'}
                 else:
                     message={'statistic':options}
                     is_broadcast=True
@@ -157,7 +157,7 @@ class DataConsumer(AsyncWebsocketConsumer):
             st=Statistic.objects.create(**sensors)
             st.save()
             return True
-        except ZeroDivisionError:
+        except:
             return False
     
     @database_sync_to_async
