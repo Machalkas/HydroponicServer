@@ -103,6 +103,12 @@ class DataConsumer(AsyncWebsocketConsumer):
         elif action=="executors":
             message={"executors":data["options"]}
             is_broadcast=True
+        elif action=="executor_state":
+            if not self.is_farm:
+                message={'error':'not enough rights to perform this action'}
+            else:
+                message={"executor_state":data["options"]}
+                is_broadcast=True
         else:
             message={'error':'failed request'}
         if is_broadcast:
