@@ -7,7 +7,7 @@ from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
 from django.core.serializers import serialize
 
-from .models import Farm, Statistic, Timetable
+from .models import Farm, Statistic, Timetable, Parameters
 
 r = redis.Redis(host='localhost', port=6379, db=1)
 r.flushdb()
@@ -60,17 +60,17 @@ class DataConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({"error":"data format is not correct"}))
             return
         print(action)
-        if action=='get_statistic':
+        if action=='get_statistic':#запрос статистики
             try:
                 options=data["options"]
             except:
                 options={}
             message = await self.get_statistic(self.farm, only_last=False, from_date=options.get("from_date",None), to_date=options.get("to_date",None))
             message={'statistic':json.loads(message)}
-        elif action=='get_latest_statistic':
+        elif action=='get_latest_statistic':#запрос последней статистики
             message = await self.get_statistic(self.farm, only_last=True)
             message={'statistic':json.loads(message)}   
-        elif action=='save_statistic':
+        elif action=='save_statistic':#сохранение статистики
             if not self.is_farm:
                 message={'error':'not enough rights to perform this action'}
             else:
@@ -81,34 +81,51 @@ class DataConsumer(AsyncWebsocketConsumer):
                 else:
                     message={'statistic':options}
                     is_broadcast=True
-        elif action=='sensors_data':
+        elif action=='sensors_data':#данные с сенсоров
             if not self.is_farm:
                 message={'error':'not enough rights to perform this action'}
             else:
                 message={'sensors_data':data["options"]}
                 is_broadcast=True
-        elif action=='is_online':
+        elif action=='is_online':#ферма онлайн?
             message={'is_online':isOnline(self.farm_id)}
-        elif action=='farm_name':
+        elif action=='farm_name':#имя вермы
             message={'farm_name':self.farm.name}
-        elif action=='get_timetable':
+        elif action=='get_timetable':#запрос расписания
             message=await self.get_timetable(self.farm)
             message={'timetable':json.loads(message)}
-        elif action=='save_timetable':
-            options=data["options"]
-            await self.save_timetable(options)
+        elif action=='save_timetable':#сохранение расписания
+            await self.save_timetable(data["options"])
             message=await self.get_timetable(self.farm)
             message={'timetable':json.loads(message)}
             is_broadcast=True
-        elif action=="executors":
+        elif action=="executors":#управление исполнителями
             message={"executors":data["options"]}
             is_broadcast=True
-        elif action=="executor_state":
+        elif action=="executor_state":#состояние исполнителей
             if not self.is_farm:
                 message={'error':'not enough rights to perform this action'}
             else:
                 message={"executor_state":data["options"]}
                 is_broadcast=True
+        elif action=="get_parameters":#запрос параметров фермы
+            params=await self.get_parameters()
+            if not params:
+                if not isOnline(self.farm_id):
+                        message={'parameters':None}
+                else:
+                    message={'get_farm_parameters': ''}
+                    is_broadcast=True
+            else:
+                message={'parameters':params}
+        elif action=="farm_parameters":#получение параметров хранящихся на ферме
+            if self.is_farm:
+                await self.save_parameters(data["options"])
+                params = await self.get_parameters()
+                message={'parameters':params}
+                is_broadcast=True
+            else:
+                message={'error':'not enough rights to perform this action'}
         else:
             message={'error':'failed request'}
         if is_broadcast:
@@ -158,6 +175,30 @@ class DataConsumer(AsyncWebsocketConsumer):
             return tm
         except:
             return json.dumps([])
+    
+    @database_sync_to_async
+    def get_parameters(self):
+        try:
+            p=Parameters.objects.get(farm=self.farm.pk)
+            p=serialize('json',p.parameters)
+            return p
+        except:
+            return json.dumps([])
+    
+    @database_sync_to_async
+    def save_parameters(self, params):
+        try:
+            try:
+                p=Parameters.objects.create(parameters=params,farm=self.farm.pk)
+                p.save()
+            except:
+                p=Parameters.objects.get(farm=self.farm.pk)
+                p.parameters=params
+                p.save()
+            finally:
+                return True
+        except:
+            return False
 
     @database_sync_to_async
     def save_statistic(self, farm, sensors):
@@ -185,8 +226,6 @@ class DataConsumer(AsyncWebsocketConsumer):
                     Timetable.objects.filter(farm=self.farm.pk).filter(date=timetable[i]["data"]['date']).update(**timetable[i]["data"])
 
             
-
-
 
 
 def isOnline(fid:str):
