@@ -1,4 +1,5 @@
 import json
+from tkinter.messagebox import NO
 import redis
 from datetime import date, datetime as dt
 
@@ -110,22 +111,25 @@ class DataConsumer(AsyncWebsocketConsumer):
                 is_broadcast=True
         elif action=="get_parameters":#запрос параметров фермы
             params=await self.get_parameters()
-            if not params:
+            if params=="[]":
                 if not isOnline(self.farm_id):
                         message={'parameters':None}
                 else:
-                    message={'get_farm_parameters': ''}
+                    message={'get_farm_parameters':''}
                     is_broadcast=True
             else:
                 message={'parameters':params}
-        elif action=="farm_parameters":#получение параметров хранящихся на ферме
+        elif action=="farm_parameters":#сохранение параметров полученных от фермы
             if self.is_farm:
-                await self.save_parameters(data["options"])
+                r=await self.save_parameters(data["options"])
                 params = await self.get_parameters()
                 message={'parameters':params}
                 is_broadcast=True
             else:
                 message={'error':'not enough rights to perform this action'}
+        elif action=='get_farm_parameters':
+            message={'get_farm_parameters':''}
+            is_broadcast=True
         else:
             message={'error':'failed request'}
         if is_broadcast:
@@ -180,7 +184,8 @@ class DataConsumer(AsyncWebsocketConsumer):
     def get_parameters(self):
         try:
             p=Parameters.objects.get(farm=self.farm.pk)
-            p=serialize('json',p.parameters)
+            # p=serialize('json',p.parameters)
+            p=json.dumps(p.parameters)
             return p
         except:
             return json.dumps([])
@@ -189,10 +194,10 @@ class DataConsumer(AsyncWebsocketConsumer):
     def save_parameters(self, params):
         try:
             try:
-                p=Parameters.objects.create(parameters=params,farm=self.farm.pk)
+                p=Parameters.objects.create(parameters=params,farm=self.farm)
                 p.save()
             except:
-                p=Parameters.objects.get(farm=self.farm.pk)
+                p=Parameters.objects.get(farm=self.farm)
                 p.parameters=params
                 p.save()
             finally:
