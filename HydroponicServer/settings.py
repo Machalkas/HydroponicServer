@@ -27,11 +27,11 @@ SECRET_KEY = 'django-insecure-zk=8q(core$5=%#&kyewttp5^sazkfr*upf#%=bcs41xr2#yk@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["192.168.1.254","192.168.119.174","127.0.0.1", "192.168.56.1", "169.254.225.242"]
+ALLOWED_HOSTS = ["0.0.0.0", "localhost", "192.168.56.1"]
 CHANNEL_REDIS_HOST=[('127.0.0.1', 6379)]
 REDIS_SECRET_KEY=[generate(size=100)]
 
-CORS_ALLOWED_ORIGINS = ["http://localhost:8080",]#удолить
+CORS_ALLOWED_ORIGINS = ["http://localhost:8080","http://192.168.1.9:8080"]#удолить
 
 # Application definition
 

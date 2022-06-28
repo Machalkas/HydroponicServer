@@ -1,11 +1,9 @@
 import json
-from tkinter.messagebox import NO
 import redis
 from datetime import date, datetime as dt
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from asgiref.sync import sync_to_async
 from django.core.serializers import serialize
 
 from .models import Farm, Statistic, Timetable, Parameters
@@ -225,7 +223,7 @@ class DataConsumer(AsyncWebsocketConsumer):
                 timetable[i]["data"]['farm_id']=self.farm.pk
                 timetable[i]["data"]['date']=dt.strptime(timetable[i]["data"]['date'],"%d.%m.%Y")
                 try:
-                    change=Timetable.objects.create(**timetable[i]["data"])
+                    change=Timetable.objects.create(**timetable[i]["data"]) #FIXME: Возникает django.core.exceptions.ValidationError: ['Значение “” имеет неверный формат. Оно должно быть в формате HH:MM[:ss[.uuuuuu]].'] если езменить время работы освещения на с пустого значения на пустое значение.
                     change.save()
                 except:
                     Timetable.objects.filter(farm=self.farm.pk).filter(date=timetable[i]["data"]['date']).update(**timetable[i]["data"])
