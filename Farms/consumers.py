@@ -1,15 +1,19 @@
 import json
 import redis
-from datetime import date, datetime as dt
+from datetime import datetime as dt
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.core.serializers import serialize
 
+from utils.websocketApi import WebsocketApi
+
 from .models import Farm, Statistic, Timetable, Parameters
 
 r = redis.Redis(host='localhost', port=6379, db=1)
 r.flushdb()
+
+api = WebsocketApi()
 
 class DataConsumer(AsyncWebsocketConsumer):
     async def connect(self):
